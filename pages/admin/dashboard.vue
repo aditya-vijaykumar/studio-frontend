@@ -20,7 +20,12 @@
 
             <v-card-actions>
               <v-spacer></v-spacer>
-              <v-btn color="primary black--text" class="my-3" nuxt to="all-clients">
+              <v-btn
+                color="primary black--text"
+                class="my-3"
+                nuxt
+                to="all-clients"
+              >
                 Open
               </v-btn>
               <v-spacer></v-spacer>
@@ -57,22 +62,15 @@
           <v-card>
             <v-card-title>
               <v-spacer></v-spacer>
-              <h3 class="h3 text-center">Payments</h3>
+              <h3 class="h3 text-center">Chat with clients</h3>
               <v-spacer></v-spacer>
             </v-card-title>
             <v-card-text class="text-center mt-5"
-              ><v-icon x-large color="primary"
-                >mdi-currency-inr</v-icon
-              ></v-card-text
+              ><v-icon x-large color="primary">mdi-chat</v-icon></v-card-text
             >
             <v-card-actions>
               <v-spacer></v-spacer>
-              <v-btn
-                color="primary black--text"
-                class="my-3"
-                nuxt
-                to="payments"
-              >
+              <v-btn color="primary black--text" class="my-3" nuxt to="chat">
                 Open
               </v-btn>
               <v-spacer></v-spacer>
@@ -102,7 +100,7 @@ export default {
   methods: {
     async validate() {},
   },
-  created(){}
+  created() {},
 }
 </script>
 

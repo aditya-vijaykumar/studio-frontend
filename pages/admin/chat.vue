@@ -2,37 +2,23 @@
   <div>
     <v-container>
       <v-row class="my-15">
-        <!-- <v-col cols="4">
+        <v-col cols="4">
           <v-card class="mx-auto" max-width="300" tile>
             <v-list flat>
               <v-subheader>Users online</v-subheader>
-              <v-list-item-group v-model="selectedItem" color="primary">
-                <v-list-item v-for="(item, i) in items" :key="i">
+              <v-list-item-group v-model="selectedUser" color="primary">
+                <v-list-item v-for="(client, i) in clientList" :key="i">
                   <v-list-item-content>
-                    <v-list-item-title v-text="item.text"></v-list-item-title>
+                    <v-list-item-title
+                      v-text="client.username"
+                    ></v-list-item-title>
                   </v-list-item-content>
                 </v-list-item>
               </v-list-item-group>
             </v-list>
           </v-card>
-        </v-col> -->
-        <v-col cols="6" offset="3">
-          <!-- <v-virtual-scroll :items="drafts" height="400" item-height="50">
-            <template v-slot:default="{ item }">
-              <v-row class="mt-3" :key="item.date">
-                <v-col cols="1" align-self="end">
-                  <v-avatar color="orange" size="40">
-                    <span class="white--text text-subtitle-1">MCL</span>
-                  </v-avatar>
-                </v-col>
-                <v-col class="pl-5 pr-7" cols="11">
-                  <p class="text-h6 mt-1 text-center">{{ item.text }}</p>
-                  <p class="text-caption text-right">Date: {{ item.date }}</p>
-                  <v-divider class="mt-2 mb-1"></v-divider>
-                </v-col>
-              </v-row>
-            </template>
-          </v-virtual-scroll> -->
+        </v-col>
+        <v-col cols="6">
           <v-virtual-scroll
             :bench="0"
             :items="drafts"
@@ -43,7 +29,10 @@
               <v-list-item :key="item">
                 <v-list-item-action>
                   <v-avatar>
-                    <img :src="link" alt="profile" />
+                    <img
+                      :src="`https://avatars.dicebear.com/api/initials/${user.username}.svg`"
+                      alt="profile"
+                    />
                   </v-avatar>
                 </v-list-item-action>
 
@@ -84,8 +73,8 @@ import socket from '../../socket'
 import { mapState } from 'vuex'
 
 export default {
-  layout: 'client',
-  middleware: 'client',
+  layout: 'admin',
+  middleware: 'admin',
   components: {},
   data() {
     return {
@@ -114,8 +103,8 @@ export default {
           src: this.link,
         },
       ],
-      adminOnline: false,
-      users: [],
+      clientList: [],
+      selectedUser: 1,
     }
   },
   computed: {
@@ -126,9 +115,17 @@ export default {
     socket.connect()
 
     socket.on('connect', () => {
-      this.users.forEach((user) => {
+      this.clientList.forEach((user) => {
         if (user.self) {
           user.connected = true
+        }
+      })
+    })
+
+    socket.on('disconnect', () => {
+      this.clientList.forEach((user) => {
+        if (user.self) {
+          user.connected = false
         }
       })
     })
@@ -137,8 +134,33 @@ export default {
       console.log(event, args)
     })
 
-    socket.on('adminAvailable', (data) => {
-      this.adminOnline = data.adminOnline
+    socket.on('clientListForAdmin', (clientList) => {
+      // put the current user first, and then sort by username
+      this.clientList = clientList.sort((a, b) => {
+        if (a.self) return -1
+        if (b.self) return 1
+        if (a.username < b.username) return -1
+        return a.username > b.username ? 1 : 0
+      })
+    })
+
+    socket.on('new client', (client) => {
+      this.clientList.push(client)
+    })
+
+    socket.on('private message', ({ content, from }) => {
+      for (let i = 0; i < this.clientList.length; i++) {
+        if (this.clientList[i].userID === from) {
+          this.clientList[i].messages.push({
+            content,
+            fromSelf: false,
+          })
+          if (this.clientList[i] !== this.selectedUser) {
+            this.clientList[i].hasNewMessages = true
+          }
+          break
+        }
+      }
     })
 
     socket.on('admin is now online', (user) => {
@@ -146,9 +168,22 @@ export default {
     })
   },
   mounted: () => {
-    console.log(this.items)
-    this.link =
-      'https://avatars.dicebear.com/api/initials/' + this.username + '.svg'
+    // console.log(this.items)
+    // this.link = 'https://avatars.dicebear.com/api/initials/' + this.user.username + '.svg'
+  },
+  methods: {
+    onMessage(content) {
+      if (this.selectedUser) {
+        socket.emit('private message', {
+          content,
+          to: this.selectedUser.userID,
+        })
+        this.selectedUser.messages.push({
+          content,
+          fromSelf: true,
+        })
+      }
+    },
   },
   destroyed() {
     socket.off('connect_error')
