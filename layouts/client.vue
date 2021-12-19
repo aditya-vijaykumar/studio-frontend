@@ -6,7 +6,12 @@
         <v-toolbar-title class="pb-5"> Client Dashboard</v-toolbar-title>
         <v-spacer></v-spacer>
         <!-- <h3 class="display-1 text-center">Mellow Creative Labs</h3> -->
-        <v-img src="/mcl-black-logo.png" height="52px" max-width="100%" contain></v-img>
+        <v-img
+          src="/mcl-black-logo.png"
+          height="52px"
+          max-width="100%"
+          contain
+        ></v-img>
         <v-spacer></v-spacer>
         <v-spacer></v-spacer>
       </v-app-bar>
@@ -82,7 +87,6 @@
 </template>
 
 <script>
-
 export default {
   data() {
     return {
@@ -98,7 +102,10 @@ export default {
 
   methods: {
     logout() {
-     
+      let boolR = this.$store.dispatch('auth/logout')
+      if (boolR) {
+        this.$router.replace('/')
+      }
     },
   },
 }

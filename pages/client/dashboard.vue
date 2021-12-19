@@ -3,7 +3,7 @@
     <v-container>
       <v-row class="my-15">
         <v-col cols="10" offset="1">
-          <h3 class="text-h3 text-center mb-3">Hello {{ user.username }}!</h3>
+          <h3 class="text-h3 text-center mb-3">Hello {{user.username}}!</h3>
         </v-col>
         <v-col cols="4">
           <v-card>
@@ -107,7 +107,6 @@ export default {
       onSubmit: false,
       snackbar: false,
       errorMsg: '',
-      usernameRules: [(v) => !!v || 'Username is required'],
     }
   },
   computed: {

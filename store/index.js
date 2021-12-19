@@ -10,13 +10,13 @@ export const mutations = {
 }
 
 export const actions = {
-  nuxtServerInit({ commit }, { req }) {
-    if (process.client) {
-      let user = JSON.parse(localStorage.getItem('user'));
-      const initialState = user
-        ? { status: { loggedIn: true }, user }
-        : { status: { loggedIn: false }, user: null };
-      commit('auth/init', { status: initialState.status, user: initialState.user })
-    }
-  }
+  // nuxtServerInit({ commit }, { req }) {
+  //   if (process.client) {
+  //     let user = JSON.parse(localStorage.getItem('user'));
+  //     const initialState = user
+  //       ? { status: { loggedIn: true }, user }
+  //       : { status: { loggedIn: false }, user: null };
+  //     commit('auth/init', { status: initialState.status, user: initialState.user })
+  //   }
+  // }
 }

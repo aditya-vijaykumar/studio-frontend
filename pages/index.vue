@@ -80,8 +80,37 @@
 </template>
 
 <script>
+import axios from 'axios'
+
 export default {
   layout: 'login',
+  async middleware({ store, redirect }) {
+    if (store.state.auth.status.loggedIn) {
+      console.log('anonymous middleware')
+      console.log(store.state.auth.access_token)
+      console.log(store.state.auth.user)
+      const API_URL = 'http://localhost:7070/api/auth/validate'
+      try {
+        const response = await axios.get(API_URL, {
+          headers: { 'x-access-token': store.state.auth.access_token },
+        })
+        console.log(response.data)
+        if (response.data.tokenValid) {
+          let user = store.state.auth.user
+          if (user && user.accessToken && user.role == 'admin') {
+            return redirect('/admin/dashboard')
+          } else if (user && user.accessToken && user.role == 'client') {
+            return redirect('/client/dashboard')
+          } else {
+            return redirect('/')
+          }
+        }
+      } catch (err) {
+        console.log(err)
+        return redirect('/')
+      }
+    }
+  },
   data() {
     return {
       valid: false,
@@ -112,18 +141,10 @@ export default {
     async validate() {
       if (this.$refs.form.validate()) {
         this.onSubmit = true
-        await this.$store
-          .dispatch('auth/login', {
-            username: this.username,
-            password: this.password,
-          })
-          .then((_) => {
-            this.$router.push('/client/dashboard')
-          })
-          .catch((error) => {
-            this.errorMsg = error
-            this.snackbar = true
-          })
+        await this.$store.dispatch('auth/login', {
+          username: this.username,
+          password: this.password,
+        })
         this.onSubmit = false
       }
     },
