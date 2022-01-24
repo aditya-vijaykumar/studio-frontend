@@ -4,7 +4,9 @@ import AuthService from '../services/auth.service';
 export const state = () => ({
   status: { loggedIn: false },
   user: null,
-  access_token: null
+  access_token: null,
+  userId: null,
+  clientAccount: {}
 })
 
 export const mutations = {
@@ -16,16 +18,22 @@ export const mutations = {
     state.status.loggedIn = true;
     state.user = user;
     state.access_token = user.accessToken
+    state.userId = user.id
+    state.clientAccount = user
   },
   loginFailure(state) {
     state.status.loggedIn = false;
     state.user = null;
     state.accessToken = null
+    state.userId = null
+    state.clientAccount = {}
   },
   logout(state) {
     state.status.loggedIn = false;
     state.user = null;
     state.access_token = null
+    state.userId = null
+    state.clientAccount = {}
   },
   registerSuccess(state) {
     state.status.loggedIn = false;

@@ -86,20 +86,6 @@
 export default {
   layout: 'admin',
   middleware: 'admin',
-  data() {
-    return {
-      valid: false,
-      username: '',
-      password: '',
-      onSubmit: false,
-      snackbar: false,
-      errorMsg: '',
-      usernameRules: [(v) => !!v || 'Username is required'],
-    }
-  },
-  methods: {
-    async validate() {},
-  },
   created() {},
 }
 </script>

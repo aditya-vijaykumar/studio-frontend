@@ -3,7 +3,7 @@
     <v-container>
       <v-row class="my-15">
         <v-col cols="10" offset="1">
-          <h3 class="text-h3 text-center mb-3">Hello {{user.username}}!</h3>
+          <h3 class="text-h3 text-center mb-3">Hello {{ user.username }}!</h3>
         </v-col>
         <v-col cols="4">
           <v-card>
@@ -111,14 +111,14 @@ export default {
   },
   computed: {
     ...mapState('auth', ['user']),
+    ...mapState('client', ['clientAccount']),
   },
   methods: {
     async validate() {},
   },
   async mounted() {
     try {
-      // await this.$store.dispatch('pageRefreshed')
-      // await this.$store.dispatch('refreshClientDetails')
+      await this.$store.dispatch('client/refreshClientDetails')
     } catch (e) {
       console.error(e)
     }
