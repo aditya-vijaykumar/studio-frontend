@@ -19,7 +19,7 @@
             There are no active projects to be displayed.
           </p>
         </v-col>
-        <v-col v-for="prj in activeProjects" cols="4" :key="prj.id">
+        <v-col v-for="prj in activeProjects" cols="4" :key="prj._id">
           <v-card>
             <v-img
               lazy-src="http://placehold.it/570x570"
@@ -37,7 +37,7 @@
                 color="primary black--text"
                 class="my-3"
                 nuxt
-                :to="url + '/' + prj.id"
+                :to="url + '/' + prj._id"
               >
                 Open
               </v-btn>

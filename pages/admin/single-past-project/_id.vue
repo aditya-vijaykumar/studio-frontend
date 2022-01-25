@@ -88,14 +88,14 @@
             </v-card-title>
             <v-card-text>
               <p
-                v-if="final.length <= 0"
+                v-if="project.finalized.length <= 0"
                 class="text-subtitle-1 text-center my-6"
               >
                 There are no final design files available for download.
               </p>
               <v-virtual-scroll
                 v-else
-                :items="final"
+                :items="project.finalized"
                 :item-height="50"
                 height="160"
               >
@@ -177,7 +177,7 @@ export default {
   },
   created() {
     this.$store.state.admin.pastProjects.forEach((element) => {
-      if (element.id == this.$route.params.id) {
+      if (element._id == this.$route.params.id) {
         this.project = element
       }
     })

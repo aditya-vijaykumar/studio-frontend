@@ -32,7 +32,7 @@
               <v-spacer></v-spacer>
               <v-col cols="3">
                 <p class="font-weight-regular text-right">
-                  {{ clientAccount.name }}
+                  {{ clientAccount.username }}
                 </p>
               </v-col>
             </v-row>
@@ -137,7 +137,7 @@
                         <v-btn
                           type="submit"
                           color="green darken-2 white--text"
-                          @click="newPromoCodeMethod()"
+                          @click="newPromptMethod()"
                         >
                           Create
                         </v-btn>
@@ -381,27 +381,38 @@ export default {
     async validate() {},
     deleteItem(item) {
       console.log(item)
-      this.promptid = item.id
+      this.promptid = item._id_
       this.dialogDelete = true
     },
     close() {
       this.dialog = false
       this.$nextTick(() => {})
     },
-    async newPromoCodeMethod() {
+    async newPromptMethod() {
       if (this.$refs.form.validate()) {
         console.log(this.pld)
+        this.$store.dispatch('client/newPrompt', {
+          id: this.projectId,
+          pld: this.pld,
+        })
         this.close()
       }
       this.refresh()
     },
-    async refresh() {
-      this.$store.dispatch('client/fetchProjectSpecifics', {
-        id: this.projectId,
-      })
+    refresh() {
+      setTimeout(() => {
+        this.$store.dispatch('client/fetchProjectSpecifics', {
+          id: this.projectId,
+        })
+        console.log('Page Refreshed')
+      }, 500)
     },
     async deleteItemConfirm() {
       console.log('Confirm Delete ' + this.promptid)
+      await this.$store.dispatch('client/deletePrompt', {
+        id: this.projectId,
+        pid: this.promptid,
+      })
       this.closeDelete()
       this.promptid = ''
       this.refresh()
@@ -412,14 +423,14 @@ export default {
     },
   },
   created() {
-    this.$store.state.activeProjects.forEach((element) => {
-      if (element.id == this.$route.params.id) {
+    this.$store.state.client.activeProjects.forEach((element) => {
+      if (element._id == this.$route.params.id) {
         this.project = element
       }
     })
 
     this.$store.dispatch('client/fetchProjectSpecifics', { id: this.projectId })
-    this.pld.c_date = moment().calendar()
+    this.pld.c_date = moment().format('LL')
   },
 }
 </script>

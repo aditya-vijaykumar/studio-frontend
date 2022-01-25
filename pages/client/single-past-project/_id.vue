@@ -36,7 +36,7 @@
               <v-spacer></v-spacer>
               <v-col cols="3">
                 <p class="font-weight-regular text-right">
-                  {{ clientAccount.name }}
+                  {{ clientAccount.username }}
                 </p>
               </v-col>
             </v-row>
@@ -176,8 +176,8 @@ export default {
     async validate() {},
   },
   created() {
-    this.$store.state.pastProjects.forEach((element) => {
-      if (element.id == this.$route.params.id) {
+    this.$store.state.client.pastProjects.forEach((element) => {
+      if (element._id == this.$route.params.id) {
         this.project = element
       }
     })

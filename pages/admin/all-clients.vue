@@ -28,7 +28,7 @@
             ></v-img>
             <v-card-title>
               <v-spacer></v-spacer>
-              <h3 class="h3 text-center">{{ prf.name }}</h3>
+              <h3 class="h3 text-center">{{ prf.username }}</h3>
               <v-spacer></v-spacer>
             </v-card-title>
             <v-card-actions>
@@ -37,7 +37,7 @@
                 color="primary black--text"
                 class="my-3"
                 nuxt
-                :to="url + '/' + prf.id"
+                :to="url + '/' + prf._id"
               >
                 Open
               </v-btn>

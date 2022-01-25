@@ -4,7 +4,7 @@ export default {
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
     titleTemplate: '%s - studio-frontend',
-    title: 'studio-frontend',
+    title: 'Mellow Creative Labs',
     htmlAttrs: {
       lang: 'en',
     },
@@ -14,14 +14,16 @@ export default {
       { hid: 'description', name: 'description', content: '' },
       { name: 'format-detection', content: 'telephone=no' },
     ],
-    link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }],
+    link: [
+      { rel: 'icon', type: 'image/png', href: '/fav.png' }
+    ]
   },
 
   // Global CSS: https://go.nuxtjs.dev/config-css
   css: [],
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
-  plugins: ['~/plugins/local-storage','~/plugins/axios',],
+  plugins: ['~/plugins/local-storage', '~/plugins/axios', { src: '~/plugins/firebase.js', }],
 
   // Auto import components: https://go.nuxtjs.dev/config-components
   components: true,

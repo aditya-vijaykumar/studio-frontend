@@ -216,7 +216,7 @@ export default {
         }
 
         if (this.photo_bool) {
-          await this.deleteImages(payload.photo)
+          //Delete Photo
           this.photo_img_link = await this.uploadImage(this.photo_img)
           payload.photo = this.photo_img_link
         }
@@ -229,17 +229,38 @@ export default {
     },
     async uploadImage(file) {
       let string = this.randomString()
-      let ref = firebasejs.defaultStorage
-        .ref()
-        .child('client-profiles')
-        .child(string + this.clientAccount.name + '_clients' + '.jpg')
-      await ref.put(file)
-      let imageUrlLink = await ref.getDownloadURL()
-      return imageUrlLink
+      let fileRefs = firebasejs.ref(
+        firebasejs.storage,
+        'client-profiles/' +
+          string +
+          this.clientAccount.username +
+          '_clients' +
+          '.jpg'
+      )
+
+      await firebasejs
+        .uploadBytes(fileRefs, file)
+        .then((snapshot) => {
+          console.log('Uploaded a blob or file!')
+        })
+        .catch((err) => {
+          console.error('An error occured while uploading the file')
+        })
+      return await firebasejs
+        .getDownloadURL(fileRefs)
+        .then((url) => {
+          console.log(url)
+          return url
+        })
+        .catch((error) => {
+          console.error('An error occured while uploading the file')
+        })
     },
     async deleteImages(img) {
-      let imageReference = firebasejs.defaultStorage.refFromURL(img)
-      await imageReference.delete()
+      if (img != null || img != '') {
+        let imageReference = firebasejs.storage
+        // await imageReference.delete()
+      }
     },
   },
   created() {

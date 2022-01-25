@@ -20,60 +20,44 @@ export const mutations = {
   setPaymentsDue(state, payload) {
     state.paymentsDue = payload.paymentsDue
     state.paymentsDue.forEach((doc) => {
-      doc.bill_date = doc.bill_date ? doc.bill_date.toDate()
-        .toISOString()
-        .slice(0, 10) : 'null'
+      doc.bill_date = doc.bill_date ?? 'null'
     })
   },
   setPaymentsMade(state, payload) {
     state.paymentsMade = payload.paymentsMade
     state.paymentsMade.forEach((doc) => {
-      doc.payment_date = doc.payment_date ? doc.payment_date.toDate()
-        .toISOString()
-        .slice(0, 10) : 'null'
+      doc.payment_date = doc.payment_date ?? 'null'
     })
   },
   setActiveProjects(state, payload) {
     state.activeProjects = payload.activeProjects
     state.activeProjects.forEach((doc) => {
-      doc.launch_date = doc.launch_date ? doc.launch_date.toDate()
-        .toISOString()
-        .slice(0, 10) : 'null'
+      doc.launch_date = doc.launch_date ?? 'null'
     })
   },
   setPastProjects(state, payload) {
     state.pastProjects = payload.pastProjects
     state.pastProjects.forEach((doc) => {
-      doc.launch_date = doc.launch_date ? doc.launch_date.toDate()
-        .toISOString()
-        .slice(0, 10) : 'null'
-      doc.complete_date = doc.complete_date ? doc.complete_date.toDate()
-        .toISOString()
-        .slice(0, 10) : 'null'
+      doc.launch_date = doc.launch_date ?? 'null'
+      doc.complete_date = doc.complete_date ?? 'null'
     })
   },
   setProjectPrompts(state, payload) {
     state.prompts = payload.prompts
     state.prompts.forEach((doc) => {
-      doc.c_date = doc.c_date ? doc.c_date.toDate()
-        .toISOString()
-        .slice(0, 10) : 'null'
+      doc.c_date = doc.c_date ?? 'null'
     })
   },
   setProjectDrafts(state, payload) {
     state.drafts = payload.drafts
     state.drafts.forEach((doc) => {
-      doc.s_date = doc.s_date ? doc.s_date.toDate()
-        .toISOString()
-        .slice(0, 10) : 'null'
+      doc.s_date = doc.s_date ?? 'null'
     })
   },
   setProjectFinal(state, payload) {
     state.final = payload.final
     state.final.forEach((doc) => {
-      doc.f_date = doc.f_date ? doc.f_date.toDate()
-        .toISOString()
-        .slice(0, 10) : 'null'
+      doc.f_date = doc.f_date ?? 'null'
     })
   },
   resetProjectSpecifics(state) {
@@ -89,7 +73,7 @@ export const actions = {
     return axios
       .get(API_URL + 'profile', {
         headers: {
-          'x-access-token': rootState.auth.userId
+          'x-access-token': rootState.auth.access_token
         }
       })
       .then(response => {
@@ -104,6 +88,8 @@ export const actions = {
   },
 
   async editProfile({ rootState }, payload) {
+    console.log('THE JWT')
+    console.log(rootState.auth.access_token)
     return axios
       .post(API_URL + 'update-profile', {
         address: payload.address,
@@ -114,7 +100,7 @@ export const actions = {
       },
         {
           headers: {
-            'x-access-token': rootState.auth.userId
+            'x-access-token': rootState.auth.access_token
           }
         }
       )
@@ -132,7 +118,7 @@ export const actions = {
     return axios
       .get(API_URL + 'payments', {
         headers: {
-          'x-access-token': rootState.auth.userId
+          'x-access-token': rootState.auth.access_token
         }
       })
       .then(response => {
@@ -155,7 +141,7 @@ export const actions = {
     await axios
       .get(API_URL + 'active-projects', {
         headers: {
-          'x-access-token': rootState.auth.userId
+          'x-access-token': rootState.auth.access_token
         }
       })
       .then(response => {
@@ -170,7 +156,7 @@ export const actions = {
     await axios
       .get(API_URL + 'past-projects', {
         headers: {
-          'x-access-token': rootState.auth.userId
+          'x-access-token': rootState.auth.access_token
         }
       })
       .then(response => {
@@ -188,7 +174,7 @@ export const actions = {
     return axios
       .get(API_URL + `project/${payload.id}`, {
         headers: {
-          'x-access-token': rootState.auth.userId
+          'x-access-token': rootState.auth.access_token
         }
       })
       .then(response => {
@@ -223,7 +209,7 @@ export const actions = {
     return axios
       .post(API_URL + 'new-project', payload, {
         headers: {
-          'x-access-token': rootState.auth.userId
+          'x-access-token': rootState.auth.access_token
         }
       })
       .then(response => {
@@ -235,4 +221,52 @@ export const actions = {
       .catch((err) => console.error(err));
   },
 
+  async newPrompt({ rootState, dispatch }, payload) {
+    return axios
+      .post(API_URL + `new-prompt/${payload.id}`, payload.pld, {
+        headers: {
+          'x-access-token': rootState.auth.access_token
+        }
+      })
+      .then(response => {
+        if (response.data.message) {
+          console.log("New Prompt in backend created")
+          dispatch('fetchProjectSpecifics', { id: payload.id })
+        }
+        return;
+      })
+      .catch((err) => console.error(err));
+  },
+  async deletePrompt({ rootState, dispatch }, payload) {
+    return axios
+      .post(API_URL + `delete-prompt/${payload.id}/${payload.pid}`, {}, {
+        headers: {
+          'x-access-token': rootState.auth.access_token
+        }
+      })
+      .then(response => {
+        if (response.data.message) {
+          console.log("Prompt deleted in backend created")
+          dispatch('fetchProjectSpecifics', { id: payload.id })
+        }
+        return;
+      })
+      .catch((err) => console.error(err));
+  },
+  async completePayment({ rootState, dispatch }, payload) {
+    return axios
+      .post(API_URL + `complete-payment/${payload.id}`, payload.payload, {
+        headers: {
+          'x-access-token': rootState.auth.access_token
+        }
+      })
+      .then(response => {
+        if (response.data.message) {
+          console.log("Payment marked completed")
+          dispatch('fetchPayments')
+        }
+        return;
+      })
+      .catch((err) => console.error(err));
+  }
 }

@@ -53,7 +53,7 @@
               v-if="clientAccount.since"
             >
               <v-icon small>mdi-calendar</v-icon> Collaborating Since:
-              {{ clientAccount.since.toDate().toISOString().slice(0, 10) }}
+              {{ clientAccount.since }}
             </div>
           </v-card-text>
         </v-card>

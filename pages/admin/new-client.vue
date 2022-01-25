@@ -38,6 +38,13 @@
                 :rules="emailRules"
               ></v-text-field>
               <v-text-field
+                label="Username"
+                required
+                prepend-icon="mdi-person"
+                v-model="payload.username"
+                type="text"
+              ></v-text-field>
+              <v-text-field
                 label="Address"
                 required
                 prepend-icon="mdi-office-building-marker"
@@ -104,6 +111,7 @@
 <script>
 import firebasejs from '~/plugins/firebase'
 import moment from 'moment'
+import crypto from 'crypto'
 
 export default {
   layout: 'admin',
@@ -116,6 +124,7 @@ export default {
         address: '',
         contact: null,
         email: '',
+        username: '',
         industry: '',
         name: '',
         photo: '',
@@ -148,24 +157,47 @@ export default {
       this.onSubmit = true
 
       this.payload.contact = parseInt(this.payload.contact)
+      this.payload.photo = await this.uploadImage(this.photo_img)
       console.log(this.payload)
+      const payload = this.payload
+      this.$store.dispatch('admin/newClient', payload)
     },
     randomString(size = 21) {
       return crypto.randomBytes(size).toString('hex').slice(0, size)
     },
     async uploadImage(file) {
       let string = this.randomString()
-      let ref = firebasejs.defaultStorage
-        .ref()
-        .child('client-profiles')
-        .child(string + this.payload.name + '_clients' + '.jpg')
-      await ref.put(file)
-      let imageUrlLink = await ref.getDownloadURL()
-      return imageUrlLink
+      let fileRefs = firebasejs.ref(
+        firebasejs.storage,
+        'client-profiles/' +
+          string +
+          '_' +
+          this.payload.name +
+          '_clients' +
+          '.jpg'
+      )
+
+      await firebasejs
+        .uploadBytes(fileRefs, file)
+        .then((snapshot) => {
+          console.log('Uploaded a blob or file!')
+        })
+        .catch((err) => {
+          console.error('An error occured while uploading the file')
+        })
+      return await firebasejs
+        .getDownloadURL(fileRefs)
+        .then((url) => {
+          console.log(url)
+          return url
+        })
+        .catch((error) => {
+          console.error('An error occured while uploading the file')
+        })
     },
   },
   created() {
-    this.payload.since = moment().calendar()
+    this.payload.since = moment().format('LL')
   },
 }
 </script>

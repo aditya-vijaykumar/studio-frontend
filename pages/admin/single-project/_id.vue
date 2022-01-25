@@ -32,7 +32,7 @@
               <v-spacer></v-spacer>
               <v-col cols="3">
                 <p class="font-weight-regular text-right">
-                  {{ clientAccount.name }}
+                  {{ clientAccount.username }}
                 </p>
               </v-col>
             </v-row>
@@ -106,7 +106,7 @@
               <div>
                 <v-data-table
                   :headers="headers"
-                  :items="prompts"
+                  :items="projectSelected.prompts"
                   class="elevation-1"
                 >
                   <template v-slot:top>
@@ -268,16 +268,19 @@
             </v-card-text>
             <v-divider></v-divider>
             <p
-              v-if="drafts.length <= 0"
+              v-if="
+                Object.keys(projectSelected).length === 0 ||
+                projectSelected.drafts.length <= 0
+              "
               class="text-subtitle-1 text-center my-6"
             >
               There are no draft designs published yet.
             </p>
             <v-virtual-scroll
               v-else
-              :items="drafts"
+              :items="projectSelected.drafts"
               height="400"
-              item-height="400"
+              item-height="350"
             >
               <template v-slot:default="{ item }">
                 <v-row class="ml-1" :key="item.s_date">
@@ -292,6 +295,8 @@
                         :src="item.img_link"
                         v-if="item.img"
                         class="ma-2"
+                        max-height="200"
+                        contain
                       ></v-img>
                       <p class="mt-3 text-h6 mt-1 text-center">
                         {{ item.text }}
@@ -398,14 +403,17 @@
             <v-divider></v-divider>
 
             <p
-              v-if="final.length <= 0"
+              v-if="
+                Object.keys(projectSelected).length === 0 ||
+                projectSelected.finalized.length <= 0
+              "
               class="text-subtitle-1 text-center my-6"
             >
               There are no final design files published yet.
             </p>
             <v-virtual-scroll
               v-else
-              :items="final"
+              :items="projectSelected.finalized"
               :item-height="50"
               height="400"
             >
@@ -697,10 +705,10 @@ export default {
         cid: '',
         pid: '',
         paid: false,
-        payment_date: null,
+        payment_date: '',
         pid: '',
         project_title: '',
-        ref_id: null,
+        ref_id: '',
         service: '',
       },
       newPaymentServices: [],
@@ -737,13 +745,13 @@ export default {
     promptReviewed(item) {
       console.log(item)
       this.prompt_revwd = true
-      this.promptid = item.id
+      this.promptid = item._id_
       this.dialogPrompt = true
     },
     promptAddressed(item) {
       console.log(item)
       this.prompt_addrsd = true
-      this.promptid = item.id
+      this.promptid = item._id_
       this.dialogPrompt = true
     },
     async promptConfirmation() {
@@ -779,6 +787,7 @@ export default {
     async confirmProjectCompleteDialog() {
       this.$store.dispatch('admin/markProjectAsComplete', {
         id: this.projectId,
+        completedDate: moment().format('LL')
       })
       this.closeProjectCompleteDialog()
       this.refresh()
@@ -799,7 +808,7 @@ export default {
       }
       this.loading = false
       this.draft_img = null
-      this.drft.s_date = moment().calendar()
+      this.drft.s_date = moment().format('LL')
       this.$nextTick(() => {})
     },
     async newDraftDoc() {
@@ -827,7 +836,7 @@ export default {
         link: '',
       }
       this.loading = false
-      this.fnl.f_date = moment().calendar()
+      this.fnl.f_date = moment().format('LL')
       this.$nextTick(() => {})
     },
     async newFinalDoc() {
@@ -881,7 +890,7 @@ export default {
         amount_due: 0,
         amount_paid: 0,
         bill_date: null,
-        cid: '',
+        cid: this.projectSelected.c_id,
         pid: '',
         paid: false,
         payment_date: null,
@@ -897,8 +906,8 @@ export default {
     async createNewPayment() {
       if (this.$refs.newpymt.validate()) {
         this.loading = true
-        this.newPayment.bill_date = moment().calendar()
-        this.newPayment.cid = this.clientAccount.id
+        this.newPayment.bill_date = moment().format('LL')
+        this.newPayment.cid = this.projectSelected.c_id
         this.newPayment.pid = this.projectId
         this.newPayment.project_title = this.projectSelected.project_title
         this.newPayment.service = this.newPaymentServices.toString()
@@ -908,12 +917,16 @@ export default {
         this.$store.dispatch('admin/newPayment', this.newPayment)
         this.closeNewPayment()
       }
+      this.refresh()
     },
     //Refresh
-    async refresh() {
-      this.$store.dispatch('admin/fetchProjectSpecifics', {
-        id: this.projectId,
-      })
+    refresh() {
+      setTimeout(() => {
+        this.$store.dispatch('admin/fetchProjectSelected', {
+          id: this.$route.params.id,
+        })
+        console.log('Page Refreshed')
+      }, 500)
     },
     async refreshThisProject() {
       await this.$store.dispatch('admin/fetchProjectSelected', {
@@ -926,56 +939,79 @@ export default {
     },
     async uploadImage(file) {
       let string = this.randomString()
-      let ref = firebasejs.defaultStorage
-        .ref()
-        .child('projects')
-        .child(
+      let fileRefs = firebasejs.ref(
+        firebasejs.storage,
+        'projects/' +
           string +
-            '_' +
-            this.projectSelected.project_title +
-            '_' +
-            this.clientAccount.name +
-            '_clients' +
-            '.jpg'
-        )
-      await ref.put(file)
-      let imageUrlLink = await ref.getDownloadURL()
-      return imageUrlLink
+          '_' +
+          this.projectSelected.project_title +
+          '_' +
+          this.clientAccount.username +
+          '_clients' +
+          '.jpg'
+      )
+
+      await firebasejs
+        .uploadBytes(fileRefs, file)
+        .then((snapshot) => {
+          console.log('Uploaded a blob or file!')
+        })
+        .catch((err) => {
+          console.error('An error occured while uploading the file')
+        })
+      return await firebasejs
+        .getDownloadURL(fileRefs)
+        .then((url) => {
+          console.log(url)
+          return url
+        })
+        .catch((error) => {
+          console.error('An error occured while uploading the file')
+        })
     },
     async uploadZipFile(file) {
       let string = this.randomString()
-      let ref = firebasejs.defaultStorage
-        .ref()
-        .child('projects')
-        .child(
+      let fileRefs = firebasejs.ref(
+        firebasejs.storage,
+        'projects/' +
           string +
-            '_' +
-            this.projectSelected.project_title +
-            '_' +
-            this.clientAccount.name +
-            '_clients' +
-            '.zip'
-        )
-      await ref.put(file)
-      let zipFileLink = await ref.getDownloadURL()
-      return zipFileLink
+          '_' +
+          this.projectSelected.project_title +
+          '_' +
+          this.clientAccount.username +
+          '_clients' +
+          '.zip'
+      )
+
+      await firebasejs
+        .uploadBytes(fileRefs, file)
+        .then((snapshot) => {
+          console.log('Uploaded a blob or file!')
+        })
+        .catch((err) => {
+          console.error('An error occured while uploading the file')
+        })
+      return await firebasejs
+        .getDownloadURL(fileRefs)
+        .then((url) => {
+          console.log(url)
+          return url
+        })
+        .catch((error) => {
+          console.error('An error occured while uploading the file')
+        })
     },
   },
   // NUXT Lifecycle
-  async created() {
-    // this.$store.state.admin.activeProjects.forEach((element) => {
-    //   if (element.id == this.$route.params.id) {
-    //     this.project = element
-    //   }
-    // })
-    await this.$store.dispatch('admin/fetchProjectSelected', {
-      id: this.$route.params.id,
+  asyncData({ store, params }) {
+    store.dispatch('admin/fetchProjectSelected', {
+      id: params.id,
     })
-
     console.log('created')
-    this.$store.dispatch('admin/fetchProjectSpecifics', { id: this.projectId })
-    this.drft.s_date = moment().calendar()
-    this.fnl.f_date = moment().calendar()
+  },
+  created() {
+    this.drft.s_date = moment().format('LL')
+    this.fnl.f_date = moment().format('LL')
     setTimeout(() => {
       this.projectDetails.fees_billable = this.projectSelected.fees_billable
       this.projectDetails.fees_due = this.projectSelected.fees_due

@@ -28,7 +28,7 @@
                 color="primary black--text"
                 class="my-3"
                 nuxt
-                :to="url + '/' + prj.id"
+                :to="url + '/' + prj._id"
               >
                 Open
               </v-btn>

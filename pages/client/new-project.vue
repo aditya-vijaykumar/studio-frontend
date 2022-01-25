@@ -110,6 +110,7 @@
 
 <script>
 import moment from 'moment'
+import { mapState } from 'vuex'
 
 export default {
   layout: 'client',
@@ -161,7 +162,7 @@ export default {
     async validate() {
       this.$refs.form.validate()
       this.onSubmit = true
-      let timstampObj = moment().calendar()
+      let timstampObj = moment().format('LL')
       console.log(timstampObj)
 
       let payload = {

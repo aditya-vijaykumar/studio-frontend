@@ -66,7 +66,7 @@
                   <v-btn
                     rounded
                     color="primary black--text"
-                    @click="payNow(item)"
+                    @click="promptTriggered(item)"
                   >
                     Pay Now
                   </v-btn>
@@ -95,6 +95,24 @@
               </v-data-table>
             </v-card-text>
           </v-card>
+          <v-dialog v-model="dialog" max-width="525px">
+            <v-card>
+              <v-card-title class="headline"
+                >This will mark the payment as completed,
+                continue?</v-card-title
+              >
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn color="blue darken-1" text @click="closePrompt"
+                  >Cancel</v-btn
+                >
+                <v-btn color="blue darken-1" text @click="promptConfirmation"
+                  >Yes</v-btn
+                >
+                <v-spacer></v-spacer>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
           <!-- <v-btn
             :disabled="dialog"
             :loading="dialog"
@@ -124,15 +142,12 @@
 
 <script>
 import { mapState } from 'vuex'
+import crypto from 'crypto'
+import moment from 'moment'
 
 export default {
   layout: 'client',
   middleware: 'client',
-  head: {
-    script: [
-      { hid: 'Razorpay', src: 'https://checkout.razorpay.com/v1/checkout.js' },
-    ],
-  },
   data() {
     return {
       loading: false,
@@ -166,28 +181,11 @@ export default {
       paidTotal: 0,
       dueTotal: 0,
       dialog: false,
-      options: {
-        key: 'rzp_test_p6Nltj1flvzfJX', // Enter the Key ID generated from the Dashboard
-        amount: 0, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
-        currency: 'INR',
-        name: 'Mellow Creative Labs',
-        description: 'Bill Payment',
-        image: 'https://mellowcreativelabs.com/images/mcl_logo_1.png',
-        order_id: '', //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
-        handler: function (response) {
-          //axios call to server, then to store action and firebase and then refresh
-        },
-        prefill: {
-          name: '',
-          email: '',
-          contact: '',
-        },
-        notes: {
-          address: 'Razorpay Corporate Office',
-        },
-        theme: {
-          color: '#3399cc',
-        },
+      payload: {
+        id: '',
+        amount_paid: 0,
+        ref_id: '',
+        payment_date: '',
       },
     }
   },
@@ -213,52 +211,44 @@ export default {
       })
     },
 
-    payNow(item) {
+    promptTriggered(item) {
+      console.log(item)
+      this.dialog = true
       console.log('Pay Now for ' + item.amount_due)
+      this.payload.ref_id = this.randomString()
+      this.payload.amount_paid = item.amount_due
+      this.payload.id = item._id
+      this.payload.payment_date = moment().format('LL')
     },
 
-    paymentNow(item) {
-      let options = {
-        key: 'rzp_test_p6Nltj1flvzfJX', // Enter the Key ID generated from the Dashboard
-        amount: item.amount_due * 100, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
-        currency: 'INR',
-        name: 'Mellow Creative Labs',
-        description: 'Test Transaction',
-        image: 'https://example.com/your_logo',
-        order_id: 'order_9A33XWu170gUtm', //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
-        handler: function (response) {
-          //axios call to server, then to store action and firebase and then refresh
-        },
-        prefill: {
-          name: 'Gaurav Kumar',
-          email: 'gaurav.kumar@example.com',
-          contact: '9999999999',
-        },
-        notes: {
-          address: 'Razorpay Corporate Office',
-        },
-        theme: {
-          color: '#3399cc',
-        },
-      }
-      let rzp1 = new Razorpay(options)
+    async promptConfirmation() {
+      await this.$store.dispatch('client/completePayment', {
+        id: this.payload.id,
+        payload: this.payload,
+      })
+      this.closePrompt()
     },
-    async getOrderID() {},
+
+    closePrompt() {
+      this.payload.ref_id = ''
+      this.payload.amount_paid = 0
+      this.payload.payment_date = ''
+      this.dialog = false
+      this.$nextTick(() => {})
+    },
+    randomString(size = 10) {
+      return crypto.randomBytes(size).toString('hex').slice(0, size)
+    },
   },
-  async beforeMount() {
-    // fetchPayments
-    try {
-      await this.$store.dispatch('client/fetchPayments')
-    } catch (e) {
-      console.error(e)
-    }
+  async created() {
     setTimeout(() => {
       this.basicData()
     }, 2000)
-
-    this.options.prefill.name = this.clientAccount.name
-    this.options.prefill.email = this.clientAccount.email
-    this.options.prefill.contact = this.clientAccount.contact
+  },
+  // NUXT Lifecycle
+  asyncData({ store }) {
+    store.dispatch('client/fetchPayments')
+    console.log('created and data fetched')
   },
 }
 </script>

@@ -29,60 +29,44 @@ export const mutations = {
   setPaymentsDue(state, payload) {
     state.paymentsDue = payload.paymentsDue
     state.paymentsDue.forEach((doc) => {
-      doc.bill_date = doc.bill_date ? doc.bill_date.toDate()
-        .toISOString()
-        .slice(0, 10) : 'null'
+      doc.bill_date = doc.bill_date ?? 'null'
     })
   },
   setPaymentsMade(state, payload) {
     state.paymentsMade = payload.paymentsMade
     state.paymentsMade.forEach((doc) => {
-      doc.payment_date = doc.payment_date ? doc.payment_date.toDate()
-        .toISOString()
-        .slice(0, 10) : 'null'
+      doc.payment_date = doc.payment_date ?? 'null'
     })
   },
   setActiveProjects(state, payload) {
     state.activeProjects = payload.activeProjects
     state.activeProjects.forEach((doc) => {
-      doc.launch_date = doc.launch_date ? doc.launch_date.toDate()
-        .toISOString()
-        .slice(0, 10) : 'null'
+      doc.launch_date = doc.launch_date ?? 'null'
     })
   },
   setPastProjects(state, payload) {
     state.pastProjects = payload.pastProjects
     state.pastProjects.forEach((doc) => {
-      doc.launch_date = doc.launch_date ? doc.launch_date.toDate()
-        .toISOString()
-        .slice(0, 10) : 'null'
-      doc.complete_date = doc.complete_date ? doc.complete_date.toDate()
-        .toISOString()
-        .slice(0, 10) : 'null'
+      doc.launch_date = doc.launch_date ?? 'null'
+      doc.complete_date = doc.complete_date ?? 'null'
     })
   },
   setProjectPrompts(state, payload) {
     state.prompts = payload.prompts
     state.prompts.forEach((doc) => {
-      doc.c_date = doc.c_date ? doc.c_date.toDate()
-        .toISOString()
-        .slice(0, 10) : 'null'
+      doc.c_date = doc.c_date ?? 'null'
     })
   },
   setProjectDrafts(state, payload) {
     state.drafts = payload.drafts
     state.drafts.forEach((doc) => {
-      doc.s_date = doc.s_date ? doc.s_date.toDate()
-        .toISOString()
-        .slice(0, 10) : 'null'
+      doc.s_date = doc.s_date ?? 'null'
     })
   },
   setProjectFinal(state, payload) {
     state.final = payload.final
     state.final.forEach((doc) => {
-      doc.f_date = doc.f_date ? doc.f_date.toDate()
-        .toISOString()
-        .slice(0, 10) : 'null'
+      doc.f_date = doc.f_date ?? 'null'
     })
   },
   resetProjectSpecifics(state) {
@@ -92,9 +76,7 @@ export const mutations = {
   },
   setProjectSelected(state, payload) {
     state.projectSelected = payload.projectSelected
-    state.projectSelected.launch_date = state.projectSelected.launch_date ? state.projectSelected.launch_date.toDate()
-      .toISOString()
-      .slice(0, 10) : 'null'
+    state.projectSelected.launch_date = state.projectSelected.launch_date ?? 'null'
   },
   resetProjectSelected(state) {
     state.projectSelected = {}
@@ -107,7 +89,7 @@ export const actions = {
     return axios
       .get(API_URL + 'all-clients', {
         headers: {
-          'x-access-token': rootState.auth.userId
+          'x-access-token': rootState.auth.access_token
         }
       })
       .then(response => {
@@ -125,7 +107,7 @@ export const actions = {
     return axios
       .get(API_URL + `get-client/${payload.id}`, {
         headers: {
-          'x-access-token': rootState.auth.userId
+          'x-access-token': rootState.auth.access_token
         }
       })
       .then(response => {
@@ -139,11 +121,11 @@ export const actions = {
       .catch((err) => console.error(err));
   },
 
-  async fetchProjectSelected({ rootState, commit }, payload) {
+  async fetchProjectSelected({ rootState, commit, dispatch }, payload) {
     return axios
       .get(API_URL + `project/${payload.id}`, {
         headers: {
-          'x-access-token': rootState.auth.userId
+          'x-access-token': rootState.auth.access_token
         }
       })
       .then(response => {
@@ -151,6 +133,7 @@ export const actions = {
           setTimeout(() => {
             commit('setProjectSelected', { projectSelected: response.data.project })
           }, 200)
+          dispatch('fetchExactClientAccount', { id: response.data.project.c_id })
         }
         return;
       })
@@ -167,7 +150,7 @@ export const actions = {
     return axios
       .get(API_URL + 'all-payments', {
         headers: {
-          'x-access-token': rootState.auth.userId
+          'x-access-token': rootState.auth.access_token
         }
       })
       .then(response => {
@@ -191,7 +174,7 @@ export const actions = {
     await axios
       .get(API_URL + 'active-projects', {
         headers: {
-          'x-access-token': rootState.auth.userId
+          'x-access-token': rootState.auth.access_token
         }
       })
       .then(response => {
@@ -206,7 +189,7 @@ export const actions = {
     await axios
       .get(API_URL + 'past-projects', {
         headers: {
-          'x-access-token': rootState.auth.userId
+          'x-access-token': rootState.auth.access_token
         }
       })
       .then(response => {
@@ -236,7 +219,7 @@ export const actions = {
       .post(API_URL + `prompt/reviewed/${payload.id}/${payload.prmptid}`, {},
         {
           headers: {
-            'x-access-token': rootState.auth.userId
+            'x-access-token': rootState.auth.access_token
           }
         }
       )
@@ -256,7 +239,7 @@ export const actions = {
       .post(API_URL + `prompt/addressed/${payload.id}/${payload.prmptid}`, {},
         {
           headers: {
-            'x-access-token': rootState.auth.userId
+            'x-access-token': rootState.auth.access_token
           }
         }
       )
@@ -276,7 +259,7 @@ export const actions = {
       .post(API_URL + `new-draft-design/${payload.id}`, payload.drft,
         {
           headers: {
-            'x-access-token': rootState.auth.userId
+            'x-access-token': rootState.auth.access_token
           }
         }
       )
@@ -296,7 +279,7 @@ export const actions = {
       .post(API_URL + `new-final-design/${payload.id}`, payload.fnl,
         {
           headers: {
-            'x-access-token': rootState.auth.userId
+            'x-access-token': rootState.auth.access_token
           }
         }
       )
@@ -320,7 +303,7 @@ export const actions = {
       },
         {
           headers: {
-            'x-access-token': rootState.auth.userId
+            'x-access-token': rootState.auth.access_token
           }
         }
       )
@@ -339,11 +322,11 @@ export const actions = {
   async markProjectAsComplete({ rootState, dispatch }, payload) {
     return axios
       .post(API_URL + `project/mark-complete/${payload.id}`, {
-        complete_date: ""
+        complete_date: payload.completedDate
       },
         {
           headers: {
-            'x-access-token': rootState.auth.userId
+            'x-access-token': rootState.auth.access_token
           }
         }
       )
@@ -360,11 +343,13 @@ export const actions = {
   },
 
   async newPayment({ rootState }, payload) {
+    console.log("NEW PAYMENTS")
+    console.log(payload)
     return axios
       .post(API_URL + 'new-payment', payload,
         {
           headers: {
-            'x-access-token': rootState.auth.userId
+            'x-access-token': rootState.auth.access_token
           }
         }
       )
@@ -372,6 +357,28 @@ export const actions = {
         if (response.data.message) {
           console.log('Created new payment bill');
           console.log(response.data.message)
+        }
+        return;
+      })
+      .catch((err) => console.error(err));
+  },
+
+  async newClient({ rootState }, payload) {
+    console.log("Begin api call")
+    console.log(payload)
+    return axios
+      .post(API_URL + 'new-client', payload,
+        {
+          headers: {
+            'x-access-token': rootState.auth.access_token
+          }
+        }
+      )
+      .then(response => {
+        if (response.data.message) {
+          console.log('Created New Client Account');
+          console.log(response.data.message)
+          $nuxt.$router.replace('/admin/dashboard')
         }
         return;
       })

@@ -1,5 +1,6 @@
-import firebase from 'firebase/app'
-import 'firebase/storage';
+import { initializeApp } from 'firebase/app';
+import { getStorage, ref, uploadBytes, getDownloadURL   } from "firebase/storage";
+
 
 const firebaseConfig = {
   apiKey: "AIzaSyByLXkDIttb1wsZeAMPMQ6coZ58nxzX2jI",
@@ -12,13 +13,11 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
-}
+const firebaseApp = initializeApp(firebaseConfig);
 
 // utils
-const defaultStorage = firebase.storage();
+const storage = getStorage(firebaseApp);
 
-const firebasejs = { defaultStorage }
+const firebasejs = { storage, ref, uploadBytes, getDownloadURL   }
 
 export default firebasejs

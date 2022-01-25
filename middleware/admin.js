@@ -15,7 +15,7 @@ export default async function ({ redirect, store }) {
         }
       }
     } catch (error) {
-      console.log(err)
+      console.log(error)
       return redirect('/')
     }
   } else {
